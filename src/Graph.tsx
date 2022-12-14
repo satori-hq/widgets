@@ -1,27 +1,19 @@
 // @ts-nocheck
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 
 export const Graph = ({ data }) => {
   const containerRef = useRef(null);
+  const [selectedNode, setSelectedNode] = useState(null);
 
   useLayoutEffect(() => {
-    console.log("graph data", data);
-
     if (containerRef) {
-      console.log(
-        "containerRef.current.clientWidth",
-        containerRef.current.clientWidth
-      );
-
       let chart = ForceGraph(data, {
         nodeId: (d) => d.id,
-
-        nodeGroup: (d) => d.group,
-        nodeTitle: (d) => `${d.id}\n${d.group}`,
-
+        nodeGroup: (d) => d.count,
+        nodeTitle: (d) => `${d.id}\nFollowed by ${d.count}`,
+        nodeStrength: -200,
         linkStrokeWidth: (l) => Math.sqrt(l.value),
-
         width: containerRef.current.clientWidth,
         height: containerRef.current.clientHeight,
         invalidation: new Promise((resolve, reject) => {
@@ -64,6 +56,12 @@ export const Graph = ({ data }) => {
       const N = d3.map(nodes, nodeId).map(intern);
       const LS = d3.map(links, linkSource).map(intern);
       const LT = d3.map(links, linkTarget).map(intern);
+
+      function intern(value) {
+        return value !== null && typeof value === "object"
+          ? value.valueOf()
+          : value;
+      }
 
       if (nodeTitle === undefined) nodeTitle = (_, i) => N[i];
       const T = nodeTitle == null ? null : d3.map(nodes, nodeTitle);
@@ -133,9 +131,7 @@ export const Graph = ({ data }) => {
         .selectAll("circle")
         .data(nodes)
         .join("circle")
-        .attr("r", (d) => {
-          return d.count / 2 + nodeRadius;
-        })
+        .attr("r", (d) => d.count / 2 + nodeRadius)
         .call(drag(simulation));
 
       if (W) link.attr("stroke-width", ({ index: i }) => W[i]);
@@ -143,12 +139,6 @@ export const Graph = ({ data }) => {
       if (G) node.attr("fill", ({ index: i }) => color(G[i]));
       if (T) node.append("title").text(({ index: i }) => T[i]);
       if (invalidation != null) invalidation.then(() => simulation.stop());
-
-      function intern(value) {
-        return value !== null && typeof value === "object"
-          ? value.valueOf()
-          : value;
-      }
 
       function ticked() {
         link
@@ -163,16 +153,21 @@ export const Graph = ({ data }) => {
       function drag(simulation) {
         function dragstarted(event) {
           if (!event.active) simulation.alphaTarget(0.3).restart();
+          console.log("dragstarted()");
+          console.log("event.subject:   ", event.subject);
           event.subject.fx = event.subject.x;
           event.subject.fy = event.subject.y;
+          setSelectedNode(event.subject.id);
         }
 
         function dragged(event) {
+          console.log("dragged()");
           event.subject.fx = event.x;
           event.subject.fy = event.y;
         }
 
         function dragended(event) {
+          console.log("dragended()");
           if (!event.active) simulation.alphaTarget(0);
           event.subject.fx = null;
           event.subject.fy = null;
