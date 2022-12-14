@@ -1,6 +1,5 @@
 // @ts-nocheck
-import { useCallback, useEffect, useState } from "react";
-import { Circles } from "./Circles";
+import { useEffect, useState } from "react";
 import { Graph } from "./Graph";
 // https://betterprogramming.pub/5-steps-to-render-d3-js-with-react-functional-components-fcce6cec1411
 function App() {

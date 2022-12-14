@@ -8,25 +8,32 @@ export const Graph = ({ data }) => {
   useLayoutEffect(() => {
     console.log("graph data", data);
 
-    let chart = ForceGraph(data, {
-      nodeId: (d) => d.id,
-      nodeGroup: (d) => d.group,
-      nodeTitle: (d) => `${d.id}\n${d.group}`,
-      linkStrokeWidth: (l) => Math.sqrt(l.value),
-      width: 800,
-      height: 600,
-      invalidation: new Promise((resolve, reject) => {
-        setTimeout(() => {
-          resolve("foo");
-        }, 300);
-      }), // a promise to stop the simulation when the cell is re-run
-    });
+    if (containerRef) {
+      console.log(
+        "containerRef.current.clientWidth",
+        containerRef.current.clientWidth
+      );
+
+      let chart = ForceGraph(data, {
+        nodeId: (d) => d.id,
+
+        nodeGroup: (d) => d.group,
+        nodeTitle: (d) => `${d.id}\n${d.group}`,
+
+        linkStrokeWidth: (l) => Math.sqrt(l.value),
+
+        width: containerRef.current.clientWidth,
+        height: containerRef.current.clientHeight,
+        invalidation: new Promise((resolve, reject) => {
+          setTimeout(() => {
+            resolve("foo");
+          }, 300);
+        }), // a promise to stop the simulation when the cell is re-run
+      });
+    }
 
     function ForceGraph(
-      {
-        nodes, // an iterable of node objects (typically [{id}, …])
-        links, // an iterable of link objects (typically [{source, target}, …])
-      },
+      { nodes, links },
       {
         nodeId = (d) => d.id, // given d in nodes, returns a unique identifier (string)
         nodeGroup, // given d in nodes, returns an (ordinal) value for color
@@ -38,13 +45,15 @@ export const Graph = ({ data }) => {
         nodeStrokeOpacity = 1, // node stroke opacity
         nodeRadius = 5, // node radius, in pixels
         nodeStrength,
+
         linkSource = ({ source }) => source, // given d in links, returns a node identifier string
         linkTarget = ({ target }) => target, // given d in links, returns a node identifier string
         linkStroke = "#999", // link stroke color
-        linkStrokeOpacity = 0.6, // link stroke opacity
-        linkStrokeWidth = 1.5, // given d in links, returns a stroke width in pixels
+        linkStrokeOpacity = 0.1, // link stroke opacity
+        linkStrokeWidth = 0.5, // given d in links, returns a stroke width in pixels
         linkStrokeLinecap = "round", // link stroke linecap
         linkStrength,
+
         colors = d3.schemeTableau10, // an array of color strings, for the node groups
         width = 640, // outer width, in pixels
         height = 400, // outer height, in pixels
@@ -67,8 +76,11 @@ export const Graph = ({ data }) => {
         typeof linkStroke !== "function" ? null : d3.map(links, linkStroke);
 
       // Replace the input nodes and links with mutable objects for the simulation.
-      nodes = d3.map(nodes, (_, i) => ({ id: N[i] }));
-      links = d3.map(links, (_, i) => ({ source: LS[i], target: LT[i] }));
+      let nodesMut = d3.map(nodes, (_, i) => ({ id: N[i] }));
+      let linksMut = d3.map(links, (_, i) => ({
+        source: LS[i],
+        target: LT[i],
+      }));
 
       // Compute default domains.
       if (G && nodeGroups === undefined) nodeGroups = d3.sort(G);
@@ -121,7 +133,9 @@ export const Graph = ({ data }) => {
         .selectAll("circle")
         .data(nodes)
         .join("circle")
-        .attr("r", nodeRadius)
+        .attr("r", (d) => {
+          return d.count / 2 + nodeRadius;
+        })
         .call(drag(simulation));
 
       if (W) link.attr("stroke-width", ({ index: i }) => W[i]);
@@ -177,8 +191,8 @@ export const Graph = ({ data }) => {
 
   return (
     <svg
-      width="800"
-      height="800"
+      width="100vw"
+      height="100vh"
       ref={containerRef}
       style={{ border: "1px solid black" }}
     >
