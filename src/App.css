@@ -3,12 +3,3 @@
   padding: 2rem;
   text-align: center;
 }
-
-.app {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: start;
-  justify-content: center;
-  font-family: sans-serif;
-  color: #282c34;
-}

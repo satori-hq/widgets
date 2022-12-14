@@ -4,10 +4,7 @@ import * as d3 from "d3";
 
 export const Graph = ({ data, selectedNode, handleSelectNode }) => {
   const containerRef = useRef(null);
-
-  function handleEvent(id) {
-    handleSelectNode(id);
-  }
+  const [selectedNode, setSelectedNode] = useState(null);
 
   useLayoutEffect(() => {
     if (containerRef) {
@@ -19,7 +16,6 @@ export const Graph = ({ data, selectedNode, handleSelectNode }) => {
         linkStrokeWidth: (l) => Math.sqrt(l.value),
         width: containerRef.current.clientWidth,
         height: containerRef.current.clientHeight,
-        handleSelectNode,
         invalidation: new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve("foo");
@@ -54,7 +50,6 @@ export const Graph = ({ data, selectedNode, handleSelectNode }) => {
         width = 640, // outer width, in pixels
         height = 400, // outer height, in pixels
         invalidation, // when this promise resolves, stop the simulation
-        handleSelectNode,
       } = {}
     ) {
       // Compute values.
@@ -137,7 +132,6 @@ export const Graph = ({ data, selectedNode, handleSelectNode }) => {
         .data(nodes)
         .join("circle")
         .attr("r", (d) => d.count / 2 + nodeRadius)
-        .attr("fill", (d) => (d.id === selectedNode ? "cyan" : nodeFill))
         .call(drag(simulation));
 
       if (W) link.attr("stroke-width", ({ index: i }) => W[i]);
@@ -159,13 +153,15 @@ export const Graph = ({ data, selectedNode, handleSelectNode }) => {
       function drag(simulation) {
         function dragstarted(event) {
           if (!event.active) simulation.alphaTarget(0.3).restart();
+          console.log("dragstarted()");
           console.log("event.subject:   ", event.subject);
           event.subject.fx = event.subject.x;
           event.subject.fy = event.subject.y;
-          handleSelectNode(event.subject.id);
+          setSelectedNode(event.subject.id);
         }
 
         function dragged(event) {
+          console.log("dragged()");
           event.subject.fx = event.x;
           event.subject.fy = event.y;
         }
@@ -189,21 +185,13 @@ export const Graph = ({ data, selectedNode, handleSelectNode }) => {
   }, [containerRef, data]);
 
   return (
-    <div
-      id="graph"
-      style={{
-        width: "100%",
-        height: "100%",
-      }}
+    <svg
+      width="100vw"
+      height="100vh"
+      ref={containerRef}
+      style={{ border: "1px solid black" }}
     >
-      <svg
-        width="100%"
-        height="100%"
-        ref={containerRef}
-        style={{ border: "1px solid black" }}
-      >
-        <g transform="translate(0, 0)" />
-      </svg>
-    </div>
+      <g transform="translate(0, 0)" />
+    </svg>
   );
 };

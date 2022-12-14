@@ -68,3 +68,21 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+.App {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  grid-auto-rows: minmax(100px, auto);
+
+  font-family: sans-serif;
+  color: #282c34;
+  width: 100vw;
+  height: 100vh;
+  border: 5px solid cyan;
+}
+
+#graph {
+  border: 5px solid salmon;
+  grid-area: 1 / 3 / 3 / 1;
+}

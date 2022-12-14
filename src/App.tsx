@@ -1,13 +1,25 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
 import { Graph } from "./Graph";
+import { Profile } from "./Profile";
 // https://betterprogramming.pub/5-steps-to-render-d3-js-with-react-functional-components-fcce6cec1411
 function App() {
   const [graph, setGraph] = useState({ nodes: [], links: [] });
+  const [profiles, setProfiles] = useState({});
+  const [selectedNode, setSelectedNode] = useState();
+
+  function handleSelectNode(e) {
+    console.log("selectedNode:", e);
+    setSelectedNode(e);
+  }
 
   useEffect(() => {
     fetchData();
     async function fetchData() {
+      let resP = await fetch("/profiles.json");
+      let dataP = await resP.json();
+      setProfiles(dataP);
+
       let res = await fetch("/graph.json");
       let data = await res.json();
 
@@ -48,8 +60,19 @@ function App() {
   useEffect(() => {}, [graph]);
 
   return (
-    <div className="app">
-      {graph.nodes.length !== 0 ? <Graph data={graph} /> : null}
+    <div className="App">
+      {graph.nodes.length !== 0 ? (
+        <Graph
+          data={graph}
+          selectedNode={selectedNode}
+          handleSelectNode={handleSelectNode}
+        />
+      ) : null}
+      <Profile
+        data={graph}
+        profiles={profiles}
+        selectedNode={selectedNode}
+      ></Profile>
     </div>
   );
 }
