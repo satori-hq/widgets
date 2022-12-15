@@ -214,7 +214,7 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
           if (!event.active) simulation.alphaTarget(0.3).restart();
           event.subject.fx = event.subject.x;
           event.subject.fy = event.subject.y;
-          if (simulation.alpha() < 0.1) {
+          if (simulation.alpha() < 0.5) {
             handleSelectNode(event.subject.id);
           }
         }
