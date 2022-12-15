@@ -73,7 +73,8 @@ button:focus-visible {
 
 #profile {
   grid-area: row-line1 / col-line5 / row-line2 / col-line7;
-  padding-bottom: 50px;
+  padding-bottom: 16px;
+  padding-bottom: 32px;
 }
 
 #tables {
@@ -88,5 +89,4 @@ button:focus-visible {
 
 #table-2 {
   grid-area: 1 / 2 / 2 / 3;
-  /* grid-area: row-line2 / col-line6 / row-line4 / col-line7; */
 }

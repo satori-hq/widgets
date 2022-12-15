@@ -3,14 +3,12 @@ import React from "react";
 
 export function Table({ title, nodeType, k, v, data }) {
   const style = {
-    // overflow: "hidden",
-    // whiteSpace: "nowrap",
     maxWidth: "200px",
   };
 
   return (
     <>
-      <h6 className="mb-4">
+      <h6 className="mb-2">
         {title} ({data.length})
       </h6>
       <div className="">

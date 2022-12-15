@@ -7,7 +7,7 @@ export const Profile = ({ profile, selectedNode }) => {
   }, [profile]);
 
   return (
-    <div id="profile">
+    <div id="profile" className="mt-2 mt-4">
       {profile ? (
         <div>
           <img
