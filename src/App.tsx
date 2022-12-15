@@ -1,16 +1,20 @@
 // @ts-nocheck
 import { useEffect, useState } from "react";
 import { Graph } from "./Graph";
-import { Profile } from "./Profile";
+import { Sidebar } from "./Sidebar";
 // https://betterprogramming.pub/5-steps-to-render-d3-js-with-react-functional-components-fcce6cec1411
 function App() {
   const [graph, setGraph] = useState({ nodes: [], links: [] });
   const [profiles, setProfiles] = useState({});
   const [selectedNode, setSelectedNode] = useState();
+  const [highlightedNode, setHighlightedNode] = useState();
 
   function handleSelectNode(e) {
-    console.log("selectedNode:", e);
     setSelectedNode(e);
+  }
+
+  function handleHighlightedtNode(e) {
+    setHighlighteddNode(e);
   }
 
   useEffect(() => {
@@ -68,11 +72,13 @@ function App() {
           handleSelectNode={handleSelectNode}
         />
       ) : null}
-      <Profile
+      <Sidebar
         data={graph}
         profiles={profiles}
         selectedNode={selectedNode}
-      ></Profile>
+        handleSelectNode={handleSelectNode}
+        handleHighlightNode={handleHighlightedtNode}
+      ></Sidebar>
     </div>
   );
 }

@@ -1,54 +1,15 @@
 // @ts-nocheck
-import { json } from "d3";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Table } from "./Table";
+import { useEffect } from "react";
 
-export const Profile = ({ data, profiles, selectedNode }) => {
-  const [deg1, setDeg1] = useState();
-  const [profile, setProfile] = useState();
-  const [myFollows, setMyFollows] = useState();
-  const [myFollowers, setMyFollowers] = useState();
-
+export const Profile = ({ profile, selectedNode }) => {
   useEffect(() => {
-    if (selectedNode) {
-      let profile = profiles[selectedNode];
-      setProfile(profile);
-      console.log("profiles", profile);
-      console.log("data", data.links);
-      const myFollows = data.links
-        .filter((e) => e.source.id === selectedNode)
-        .reduce((acc, i) => {
-          let res = acc.findIndex((el) => el.target.id === i.target.id);
-          if (res === -1) {
-            acc.push(i);
-          }
-          return acc;
-        }, [])
-        .sort((a, b) => b.target.count - a.target.count);
-      const myFollowers = data.links
-        .filter((e) => e.target.id === selectedNode)
-        .reduce((acc, i) => {
-          let res = acc.findIndex((el) => el.source.id === i.source.id);
-          if (res === -1) {
-            acc.push(i);
-          }
-          return acc;
-        }, [])
-        .sort((a, b) => b.source.count - a.source.count);
-      console.log("myFollows", myFollows);
-      console.log("myFollowers", myFollowers);
-      setMyFollowers(myFollowers);
-      setMyFollows(myFollows);
-    }
-  }, [selectedNode]);
-
-  useEffect(() => {
-    console.log(`https://ipfs.io/ipfs/${profile?.image?.ipfs_cid}`);
+    // console.log(`https://ipfs.io/ipfs/${profile?.image?.ipfs_cid}`);
   }, [profile]);
+
   return (
-    <div className="alert alert-primary" role="alert">
+    <div id="profile">
       {profile ? (
-        <div id="profile">
+        <div>
           <img
             style={{ maxWidth: "200px" }}
             src={`https://ipfs.io/ipfs/${profile?.image?.ipfs_cid}`}
@@ -87,6 +48,7 @@ export const Profile = ({ data, profiles, selectedNode }) => {
             {JSON.stringify(profile, null, 2)}
           </pre> */}
 
+          {/* 
           {profile.linktree ? (
             <>
               <h5>Linktree</h5>
@@ -108,6 +70,7 @@ export const Profile = ({ data, profiles, selectedNode }) => {
               </>
             </>
           ) : null}
+          */}
 
           {/* {profile.description ? (
             <>
@@ -116,49 +79,11 @@ export const Profile = ({ data, profiles, selectedNode }) => {
             </>
           ) : null} */}
         </div>
-      ) : null}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gridGap: "20px",
-        }}
-      >
-        <div>
-          {myFollowers ? (
-            <Table
-              title={"Followers"}
-              data={myFollowers}
-              nodeType={"source"}
-              k={{
-                id: "id",
-                label: "Account",
-              }}
-              v={{
-                id: "count",
-                label: "Count",
-              }}
-            ></Table>
-          ) : null}
-        </div>
-        <div>
-          {myFollows ? (
-            <Table
-              title={"Following"}
-              data={myFollows}
-              nodeType={"target"}
-              k={{
-                id: "id",
-                label: "Account",
-              }}
-              v={{
-                id: "count",
-                label: "Count",
-              }}
-            ></Table>
-          ) : null}
-        </div>
-      </div>
+      ) : (
+        <pre style={{ maxWidth: "400px" }}>
+          {JSON.stringify(profile, null, 2)}
+        </pre>
+      )}
     </div>
   );
 };
