@@ -4,18 +4,17 @@ import { Graph } from "./Graph";
 import { Sidebar } from "./Sidebar";
 // https://betterprogramming.pub/5-steps-to-render-d3-js-with-react-functional-components-fcce6cec1411
 function App() {
+  // Data
   const [graph, setGraph] = useState({ nodes: [], links: [] });
   const [profiles, setProfiles] = useState({});
+
+  // Selected Node
   const [selectedNode, setSelectedNode] = useState();
+  const [followedBy, setFollowedBy] = useState();
+  const [following, setFollowing] = useState();
+
+  // Highlighted Node
   const [highlightedNode, setHighlightedNode] = useState();
-
-  function handleSelectNode(e) {
-    setSelectedNode(e);
-  }
-
-  function handleHighlightedtNode(e) {
-    setHighlighteddNode(e);
-  }
 
   useEffect(() => {
     fetchData();
@@ -61,7 +60,34 @@ function App() {
     }
   }, []);
 
-  useEffect(() => {}, [graph]);
+  useEffect(() => {
+    if (selectedNode) {
+      const myFollows = graph.links
+        .filter((e) => e.source.id === selectedNode)
+        .reduce((acc, i) => {
+          let res = acc.findIndex((el) => el.target.id === i.target.id);
+          if (res === -1) {
+            acc.push(i);
+          }
+          return acc;
+        }, [])
+        .sort((a, b) => b.target.count - a.target.count);
+      const myFollowers = graph.links
+        .filter((e) => e.target.id === selectedNode)
+        .reduce((acc, i) => {
+          let res = acc.findIndex((el) => el.source.id === i.source.id);
+          if (res === -1) {
+            acc.push(i);
+          }
+          return acc;
+        }, [])
+        .sort((a, b) => b.source.count - a.source.count);
+      // console.log("myFollows", myFollows);
+      // console.log("myFollowers", myFollowers);
+      setFollowedBy(myFollowers);
+      setFollowing(myFollows);
+    }
+  }, [selectedNode]);
 
   return (
     <div className="App">
@@ -69,15 +95,14 @@ function App() {
         <Graph
           data={graph}
           selectedNode={selectedNode}
-          handleSelectNode={handleSelectNode}
+          handleSelectNode={setSelectedNode}
         />
       ) : null}
       <Sidebar
-        data={graph}
-        profiles={profiles}
         selectedNode={selectedNode}
-        handleSelectNode={handleSelectNode}
-        handleHighlightNode={handleHighlightedtNode}
+        profiles={profiles}
+        followedBy={followedBy}
+        following={following}
       ></Sidebar>
     </div>
   );
