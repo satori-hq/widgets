@@ -2,7 +2,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 
-export const Graph = ({ data, selectedNode, handleSelectNode }) => {
+export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
   const containerRef = useRef(null);
 
   function handleEvent(id) {
@@ -19,7 +19,9 @@ export const Graph = ({ data, selectedNode, handleSelectNode }) => {
         linkStrokeWidth: (l) => Math.sqrt(l.value),
         width: containerRef.current.clientWidth,
         height: containerRef.current.clientHeight,
+        selectedNode,
         handleSelectNode,
+        deg1,
         invalidation: new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve("foo");
@@ -55,6 +57,8 @@ export const Graph = ({ data, selectedNode, handleSelectNode }) => {
         height = 400, // outer height, in pixels
         invalidation, // when this promise resolves, stop the simulation
         handleSelectNode,
+        selectedNode,
+        deg1,
       } = {}
     ) {
       // Compute values.
@@ -138,7 +142,30 @@ export const Graph = ({ data, selectedNode, handleSelectNode }) => {
         .join("circle")
         .attr("r", (d) => d.count / 2 + nodeRadius)
         .attr("fill", (d) => (d.id === selectedNode ? "cyan" : nodeFill))
-        .call(drag(simulation));
+        .call(drag(simulation))
+        .on("mouseenter", (evt, d) => {
+          if (!selectedNode || selectedNode !== d.id) return;
+          link
+            .attr("display", "none")
+            .filter((l) => {
+              return l.source.id === d.id || l.target.id === d.id;
+            })
+            .attr("display", "block");
+          node
+            .attr("opacity", "0.1")
+            .filter((n) => {
+              if (n.id === d.id) return true;
+              if (deg1) {
+                return deg1.includes(n.id);
+              }
+              return true;
+            })
+            .attr("opacity", "1");
+        })
+        .on("mouseleave", (evt) => {
+          link.attr("display", "block");
+          node.attr("opacity", "1");
+        });
 
       if (W) link.attr("stroke-width", ({ index: i }) => W[i]);
       if (L) link.attr("stroke", ({ index: i }) => L[i]);
@@ -171,7 +198,7 @@ export const Graph = ({ data, selectedNode, handleSelectNode }) => {
         }
 
         function dragended(event) {
-          console.log("dragended()");
+          // console.log("dragended()");
           if (!event.active) simulation.alphaTarget(0);
           event.subject.fx = null;
           event.subject.fy = null;
@@ -186,7 +213,7 @@ export const Graph = ({ data, selectedNode, handleSelectNode }) => {
 
       return Object.assign(svg.node(), { scales: { color } });
     }
-  }, [containerRef, data]);
+  }, [containerRef, data, selectedNode, deg1]);
 
   return (
     <div

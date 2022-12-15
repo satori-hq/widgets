@@ -12,6 +12,7 @@ function App() {
   const [selectedNode, setSelectedNode] = useState();
   const [followedBy, setFollowedBy] = useState();
   const [following, setFollowing] = useState();
+  const [deg1, setDeg1] = useState([]);
 
   // Highlighted Node
   const [highlightedNode, setHighlightedNode] = useState();
@@ -82,10 +83,16 @@ function App() {
           return acc;
         }, [])
         .sort((a, b) => b.source.count - a.source.count);
-      // console.log("myFollows", myFollows);
-      // console.log("myFollowers", myFollowers);
       setFollowedBy(myFollowers);
       setFollowing(myFollows);
+
+      // First degree nodes
+      let d1 = [
+        ...myFollowers.map((el) => el.source.id),
+        ...myFollows.map((el) => el.target.id),
+      ].filter((v, i, a) => a.indexOf(v) === i);
+
+      setDeg1(d1);
     }
   }, [selectedNode]);
 
@@ -96,6 +103,7 @@ function App() {
           data={graph}
           selectedNode={selectedNode}
           handleSelectNode={setSelectedNode}
+          deg1={deg1}
         />
       ) : null}
       <Sidebar
