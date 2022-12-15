@@ -11,12 +11,15 @@ export function Table({ title, nodeType, k, v, data }) {
       <h6 className="mb-2">
         {title} ({data.length})
       </h6>
-      <div className="">
-        <table className="table table-sm" style={{ fontSize: "12px" }}>
+      <div className="mr-2">
+        <table
+          className="table table-sm"
+          style={{ maxWidth: "300px", fontSize: "12px" }}
+        >
           <thead>
             <tr>
               <th style={style}>{k.label}</th>
-              <th>{v.label}</th>
+              <th style={{ textAlign: "end" }}>{v.label}</th>
             </tr>
           </thead>
           <tbody>
@@ -35,7 +38,7 @@ export function Table({ title, nodeType, k, v, data }) {
                     {i[nodeType][k.id]}
                   </span>
                 </td>
-                <td>{i[nodeType][v.id]}</td>
+                <td style={{ textAlign: "end" }}>{i[nodeType][v.id]}</td>
               </tr>
             ))}
           </tbody>

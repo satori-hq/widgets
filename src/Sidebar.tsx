@@ -19,7 +19,7 @@ export const Sidebar = ({ selectedNode, profiles, followedBy, following }) => {
   if (!selectedNode) return <AppDefault />;
 
   return (
-    <div id="sidebar" className="" role="alert">
+    <div id="sidebar" className="border-start ps-2" role="alert">
       {profile ? (
         <Profile selectedNode={selectedNode} profile={profile} />
       ) : (
