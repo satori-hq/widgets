@@ -118,6 +118,25 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
 
       svg.selectAll("*").remove();
 
+      // Per-type markers, as they don't inherit styles.
+      // svg
+      //   .append("defs")
+      //   .append("marker")
+      //   .attrs({
+      //     id: "arrowhead",
+      //     viewBox: "-0 -5 10 10",
+      //     refX: 13,
+      //     refY: 0,
+      //     orient: "auto",
+      //     markerWidth: 13,
+      //     markerHeight: 13,
+      //     xoverflow: "visible",
+      //   })
+      //   .append("svg:path")
+      //   .attr("d", "M 0,-5 L 10 ,0 L 0,5")
+      //   .attr("fill", "#999")
+      //   .style("stroke", "none");
+
       const link = svg
         .append("g")
         .attr("stroke", typeof linkStroke !== "function" ? linkStroke : null)
@@ -130,6 +149,7 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
         .selectAll("line")
         .data(links)
         .join("line");
+      // .attr("marker-end", "url(#arrowhead)");
 
       const node = svg
         .append("g")
@@ -144,13 +164,16 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
         .attr("fill", (d) => (d.id === selectedNode ? "cyan" : nodeFill))
         .call(drag(simulation))
         .on("mouseenter", (evt, d) => {
+          console.log("simulation.alpha()", simulation.alpha());
+
           if (!selectedNode || selectedNode !== d.id) return;
           link
             .attr("display", "none")
             .filter((l) => {
               return l.source.id === d.id || l.target.id === d.id;
             })
-            .attr("display", "block");
+            .attr("display", "block")
+            .attr("stroke-opacity", 1);
           node
             .attr("opacity", "0.1")
             .filter((n) => {
@@ -163,7 +186,10 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
             .attr("opacity", "1");
         })
         .on("mouseleave", (evt) => {
-          link.attr("display", "block");
+          link
+            .attr("display", "block")
+            .attr("stroke-opacity", linkStrokeOpacity);
+
           node.attr("opacity", "1");
         });
 
@@ -186,10 +212,11 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
       function drag(simulation) {
         function dragstarted(event) {
           if (!event.active) simulation.alphaTarget(0.3).restart();
-          console.log("event.subject:   ", event.subject);
           event.subject.fx = event.subject.x;
           event.subject.fy = event.subject.y;
-          handleSelectNode(event.subject.id);
+          if (simulation.alpha() < 0.1) {
+            handleSelectNode(event.subject.id);
+          }
         }
 
         function dragged(event) {
@@ -198,7 +225,6 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
         }
 
         function dragended(event) {
-          // console.log("dragended()");
           if (!event.active) simulation.alphaTarget(0);
           event.subject.fx = null;
           event.subject.fy = null;
