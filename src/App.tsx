@@ -10,6 +10,7 @@ function App() {
 
   // Selected Node
   const [selectedNode, setSelectedNode] = useState();
+  const [hoveredNode, setHoveredNode] = useState();
   const [followedBy, setFollowedBy] = useState();
   const [following, setFollowing] = useState();
   const [deg1, setDeg1] = useState([]);

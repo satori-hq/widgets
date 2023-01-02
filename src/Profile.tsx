@@ -42,36 +42,34 @@ export const Profile = ({ profile, selectedNode }) => {
             {JSON.stringify(profile, null, 2)}
           </pre> */}
 
-        {/* 
-          {profile.linktree ? (
+        {/* {profile.linktree ? (
+          <>
+            <h5>Linktree</h5>
             <>
-              <h5>Linktree</h5>
-              <>
-                {Object.entries(profile.linktree).map(([key, value]) => (
-                  <p key={key}>
-                    <span
-                      style={{
-                        fontWeight: "bold",
-                        minWidth: "100px",
-                        marginRight: "10px",
-                      }}
-                    >
-                      {key}
-                    </span>
-                    <span>{value}</span>
-                  </p>
-                ))}
-              </>
+              {Object.entries(profile.linktree).map(([key, value]) => (
+                <p key={key}>
+                  <span
+                    style={{
+                      fontWeight: "bold",
+                      minWidth: "100px",
+                      marginRight: "10px",
+                    }}
+                  >
+                    {key}
+                  </span>
+                  <span>{value}</span>
+                </p>
+              ))}
             </>
-          ) : null}
-          */}
+          </>
+        ) : null} */}
 
-        {/* {profile.description ? (
-            <>
-              <h5>Profile Description</h5>
-              <p>{profile.description}</p>
-            </>
-          ) : null} */}
+        {profile.description ? (
+          <>
+            <h5>Profile Description</h5>
+            <p>{profile.description}</p>
+          </>
+        ) : null}
       </div>
       {/* <pre style={{ maxWidth: "400px" }}>
         {JSON.stringify(profile, null, 2)}

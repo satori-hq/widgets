@@ -1,13 +1,9 @@
 // @ts-nocheck
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import * as d3 from "d3";
 
 export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
   const containerRef = useRef(null);
-
-  function handleEvent(id) {
-    handleSelectNode(id);
-  }
 
   useLayoutEffect(() => {
     if (containerRef) {
@@ -43,28 +39,36 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
         nodeStrokeOpacity = 1, // node stroke opacity
         nodeRadius = 5, // node radius, in pixels
         nodeStrength,
-
-        linkSource = ({ source }) => source, // given d in links, returns a node identifier string
+        linkSource = ({ source }) => {
+          console.log("source", source);
+          return source;
+        }, // given d in links, returns a node identifier string
         linkTarget = ({ target }) => target, // given d in links, returns a node identifier string
         linkStroke = "#999", // link stroke color
         linkStrokeOpacity = 0.1, // link stroke opacity
         linkStrokeWidth = 0.5, // given d in links, returns a stroke width in pixels
         linkStrokeLinecap = "round", // link stroke linecap
         linkStrength,
-
         colors = d3.schemeTableau10, // an array of color strings, for the node groups
         width = 640, // outer width, in pixels
         height = 400, // outer height, in pixels
         invalidation, // when this promise resolves, stop the simulation
+
         handleSelectNode,
         selectedNode,
         deg1,
+        emitNode = (d) => {
+          d.id;
+        },
       } = {}
     ) {
       // Compute values.
       const N = d3.map(nodes, nodeId).map(intern);
+      console.log("N", N);
       const LS = d3.map(links, linkSource).map(intern);
       const LT = d3.map(links, linkTarget).map(intern);
+      console.log("LS", LS);
+      console.log("LT", LT);
 
       function intern(value) {
         return value !== null && typeof value === "object"
@@ -81,13 +85,6 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
           : d3.map(links, linkStrokeWidth);
       const L =
         typeof linkStroke !== "function" ? null : d3.map(links, linkStroke);
-
-      // Replace the input nodes and links with mutable objects for the simulation.
-      let nodesMut = d3.map(nodes, (_, i) => ({ id: N[i] }));
-      let linksMut = d3.map(links, (_, i) => ({
-        source: LS[i],
-        target: LT[i],
-      }));
 
       // Compute default domains.
       if (G && nodeGroups === undefined) nodeGroups = d3.sort(G);
@@ -166,14 +163,12 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
         .on("mouseenter", (evt, d) => {
           console.log("simulation.alpha()", simulation.alpha());
 
+          node
+            .filter((n) => (n.id === d.id ? true : false))
+            .attr("stroke-width", 3);
+
           if (!selectedNode || selectedNode !== d.id) return;
-          link
-            .attr("display", "none")
-            .filter((l) => {
-              return l.source.id === d.id || l.target.id === d.id;
-            })
-            .attr("display", "block")
-            .attr("stroke-opacity", 1);
+
           node
             .attr("opacity", "0.1")
             .filter((n) => {
@@ -184,19 +179,37 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
               return true;
             })
             .attr("opacity", "1");
+
+          link
+            .attr("display", "none")
+            .filter((l) => {
+              return l.source.id === d.id || l.target.id === d.id;
+            })
+            .attr("display", "block")
+            .attr("stroke-opacity", 1);
         })
         .on("mouseleave", (evt) => {
           link
             .attr("display", "block")
             .attr("stroke-opacity", linkStrokeOpacity);
 
-          node.attr("opacity", "1");
+          node
+            .attr("stroke", nodeFill)
+            .attr("stroke-width", nodeStrokeWidth)
+            .attr("opacity", "1");
         });
 
       if (W) link.attr("stroke-width", ({ index: i }) => W[i]);
       if (L) link.attr("stroke", ({ index: i }) => L[i]);
       if (G) node.attr("fill", ({ index: i }) => color(G[i]));
       if (T) node.append("title").text(({ index: i }) => T[i]);
+      node
+        .append("text")
+        .text((d) => d.id)
+        .style("fill", "#000")
+        .style("font-size", "12px")
+        .attr("x", 6)
+        .attr("y", 3);
       if (invalidation != null) invalidation.then(() => simulation.stop());
 
       function ticked() {
@@ -211,10 +224,11 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
 
       function drag(simulation) {
         function dragstarted(event) {
+          console.log("event", event);
           if (!event.active) simulation.alphaTarget(0.3).restart();
           event.subject.fx = event.subject.x;
           event.subject.fy = event.subject.y;
-          if (simulation.alpha() < 0.5) {
+          if (simulation.alpha() < 0.8) {
             handleSelectNode(event.subject.id);
           }
         }

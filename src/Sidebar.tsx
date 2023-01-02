@@ -16,11 +16,13 @@ export const Sidebar = ({ selectedNode, profiles, followedBy, following }) => {
     // console.log(`https://ipfs.io/ipfs/${profile?.image?.ipfs_cid}`);
   }, [profile]);
 
-  if (!selectedNode) return <AppDefault />;
+  // if (!selectedNode) return <AppDefault />;
 
   return (
-    <div id="sidebar" className="border-start ps-2" role="alert">
-      {profile ? (
+    <div id="sidebar" className="border-start ps-2">
+      {!selectedNode ? (
+        <AppDefault />
+      ) : profile ? (
         <Profile selectedNode={selectedNode} profile={profile} />
       ) : (
         <ProfileDefault selectedNode={selectedNode} />
