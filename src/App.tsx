@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { Graph } from "./Graph";
 import { Sidebar } from "./Sidebar";
+import { linksFromData, nodesFromLinks } from "./utils";
+
 // https://betterprogramming.pub/5-steps-to-render-d3-js-with-react-functional-components-fcce6cec1411
 function App() {
   // Data
@@ -10,62 +12,37 @@ function App() {
 
   // Selected Node
   const [selectedNode, setSelectedNode] = useState();
-  const [hoveredNode, setHoveredNode] = useState();
   const [followedBy, setFollowedBy] = useState();
   const [following, setFollowing] = useState();
   const [deg1, setDeg1] = useState([]);
 
-  // Highlighted Node
-  const [highlightedNode, setHighlightedNode] = useState();
-
   useEffect(() => {
     fetchData();
     async function fetchData() {
-      let resP = await fetch("/profiles.json");
-      let dataP = await resP.json();
-      setProfiles(dataP);
-
-      let res = await fetch("/graph.json");
-      let data = await res.json();
-
-      let links = data.map((g) => ({
-        source: g.accountId, // follower
-        target: g.value.accountId, // followed
-        blockHeight: g.blockHeight,
-      }));
-
-      let nodes = links
-        .reduce((acc, i) => {
-          // add sources
-          let res = acc.findIndex((el) => el.id === i.target);
-
-          if (res === -1) {
-            acc.push({ id: i.target, count: 1 });
-          } else {
-            let el = {
-              id: i.target,
-              count: acc[res].count + 1,
-            };
-            acc[res] = el;
-          }
-
-          // add targets
-          let followerResult = acc.findIndex((el) => el.id === i.source);
-          if (followerResult === -1) {
-            acc.push({ id: i.source, count: 0 });
-          }
-          return acc;
-        }, [])
-        .sort((a, b) => b.count - a.count);
-
+      let profiles = await (await fetch("/profiles.json")).json();
+      setProfiles(profiles);
+      let data = await (await fetch("/graph.json")).json();
+      let links = linksFromData(data);
+      let nodes = nodesFromLinks(links);
       setGraph({ nodes, links });
     }
   }, []);
 
   useEffect(() => {
+    console.log("==================================================");
+    console.log("==================================================");
+    console.log("==================================================");
+    console.log("new selectedNode: ", selectedNode);
+
     if (selectedNode) {
+      console.log("graph.nodes");
+      console.table(graph.nodes.slice(0, 10));
+      console.log("graph.links");
+      console.log(graph.links.slice(0, 10));
+      // graph.links.slice(0, 10).forEach((l) => console.log(l.source, l.target));
+
       const myFollows = graph.links
-        .filter((e) => e.source.id === selectedNode)
+        .filter((el) => el.source.id === selectedNode)
         .reduce((acc, i) => {
           let res = acc.findIndex((el) => el.target.id === i.target.id);
           if (res === -1) {
@@ -74,6 +51,7 @@ function App() {
           return acc;
         }, [])
         .sort((a, b) => b.target.count - a.target.count);
+
       const myFollowers = graph.links
         .filter((e) => e.target.id === selectedNode)
         .reduce((acc, i) => {

@@ -5,7 +5,7 @@ import * as d3 from "d3";
 export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
   const containerRef = useRef(null);
 
-  useLayoutEffect(() => {
+  const config = useLayoutEffect(() => {
     if (containerRef) {
       let chart = ForceGraph(data, {
         nodeId: (d) => d.id,
@@ -19,6 +19,7 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
         handleSelectNode,
         deg1,
         invalidation: new Promise((resolve, reject) => {
+          console.log("invalidation()");
           setTimeout(() => {
             resolve("foo");
           }, 300);
@@ -40,7 +41,7 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
         nodeRadius = 5, // node radius, in pixels
         nodeStrength,
         linkSource = ({ source }) => {
-          console.log("source", source);
+          // console.log("source", source);
           return source;
         }, // given d in links, returns a node identifier string
         linkTarget = ({ target }) => target, // given d in links, returns a node identifier string
@@ -63,12 +64,15 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
       } = {}
     ) {
       // Compute values.
-      const N = d3.map(nodes, nodeId).map(intern);
-      console.log("N", N);
-      const LS = d3.map(links, linkSource).map(intern);
-      const LT = d3.map(links, linkTarget).map(intern);
-      console.log("LS", LS);
-      console.log("LT", LT);
+      const NODES = d3.map(nodes, nodeId).map(intern);
+      // console.log("NODES");
+      // console.table(NODES);
+      // const LINKS_SOURCE = d3.map(links, linkSource).map(intern);
+      // console.log("LINK_SOURCE");
+      // console.table(LINKS_SOURCE?.slice(0, 20));
+      // const LINKS_TARGET = d3.map(links, linkTarget).map(intern);
+      // console.log("LINK_TARGET");
+      // console.table(LINKS_TARGET?.slice(0, 20));
 
       function intern(value) {
         return value !== null && typeof value === "object"
@@ -76,28 +80,41 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
           : value;
       }
 
-      if (nodeTitle === undefined) nodeTitle = (_, i) => N[i];
-      const T = nodeTitle == null ? null : d3.map(nodes, nodeTitle);
-      const G = nodeGroup == null ? null : d3.map(nodes, nodeGroup).map(intern);
-      const W =
+      if (nodeTitle === undefined) nodeTitle = (_, i) => NODES[i];
+      const NODE_TITLE = nodeTitle == null ? null : d3.map(nodes, nodeTitle);
+      const NODE_GROUP =
+        nodeGroup == null ? null : d3.map(nodes, nodeGroup).map(intern);
+      const STROKE_WIDTH =
         typeof linkStrokeWidth !== "function"
           ? null
           : d3.map(links, linkStrokeWidth);
       const L =
         typeof linkStroke !== "function" ? null : d3.map(links, linkStroke);
 
+      // console.log("NODE_TITLE");
+      // console.table(NODE_TITLE?.slice(0, 20));
+      // console.log("NODE_GROUP");
+      // console.table(NODE_GROUP?.slice(0, 20));
+      // console.log("STROKE_WIDTH");
+      // console.table(STROKE_WIDTH?.slice(0, 20));
+      // console.log("L");
+      // console.table(L?.slice(0, 20));
+
       // Compute default domains.
-      if (G && nodeGroups === undefined) nodeGroups = d3.sort(G);
+      if (NODE_GROUP && nodeGroups === undefined)
+        nodeGroups = d3.sort(NODE_GROUP);
 
       // Construct the scales.
       const color =
         nodeGroup == null ? null : d3.scaleOrdinal(nodeGroups, colors);
 
+      // ============================================
       // Construct the forces.
+      // ============================================
       const forceNode = d3.forceManyBody();
-      const forceLink = d3.forceLink(links).id(({ index: i }) => N[i]);
+      const forceLink = d3.forceLink(links).id(({ index: i }) => NODES[i]);
       if (nodeStrength !== undefined) forceNode.strength(nodeStrength);
-      if (linkStrength !== undefined) forceLink.strength(linkStrength);
+      if (linkStrength !== undefined) forceLink.strength(forceLink);
 
       const simulation = d3
         .forceSimulation(nodes)
@@ -106,6 +123,9 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
         .force("center", d3.forceCenter())
         .on("tick", ticked);
 
+      // ============================================
+      // Draw
+      // ============================================
       const svg = d3
         .select(containerRef.current)
         .attr("width", width)
@@ -157,18 +177,41 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
         .selectAll("circle")
         .data(nodes)
         .join("circle")
-        .attr("r", (d) => d.count / 2 + nodeRadius)
+        .attr("r", (d) => d.count / 10 + nodeRadius)
+        // .attr("r", (d) => 1)
         .attr("fill", (d) => (d.id === selectedNode ? "cyan" : nodeFill))
         .call(drag(simulation))
         .on("mouseenter", (evt, d) => {
-          console.log("simulation.alpha()", simulation.alpha());
+          const myFollows = data.links
+            .filter((el) => el.source.id === d.id)
+            .reduce((acc, i) => {
+              let res = acc.findIndex((el) => el.target.id === i.target.id);
+              if (res === -1) {
+                acc.push(i);
+              }
+              return acc;
+            }, [])
+            .sort((a, b) => b.target.count - a.target.count);
 
+          // const myFollowers = graph.links
+          //   .filter((e) => e.target.id === selectedNode)
+          //   .reduce((acc, i) => {
+          //     let res = acc.findIndex((el) => el.source.id === i.source.id);
+          //     if (res === -1) {
+          //       acc.push(i);
+          //     }
+          //     return acc;
+          //   }, [])
+          //   .sort((a, b) => b.source.count - a.source.count);
+
+          console.log("myFollows", myFollows);
+
+          // HIGHLIGHT HOVERED NODE
           node
             .filter((n) => (n.id === d.id ? true : false))
             .attr("stroke-width", 3);
 
-          if (!selectedNode || selectedNode !== d.id) return;
-
+          // HIGHLIGHT HOVERED NODE
           node
             .attr("opacity", "0.1")
             .filter((n) => {
@@ -179,6 +222,8 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
               return true;
             })
             .attr("opacity", "1");
+
+          handleSelectNode(d.id);
 
           link
             .attr("display", "none")
@@ -199,10 +244,13 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
             .attr("opacity", "1");
         });
 
-      if (W) link.attr("stroke-width", ({ index: i }) => W[i]);
+      if (STROKE_WIDTH)
+        link.attr("stroke-width", ({ index: i }) => STROKE_WIDTH[i]);
       if (L) link.attr("stroke", ({ index: i }) => L[i]);
-      if (G) node.attr("fill", ({ index: i }) => color(G[i]));
-      if (T) node.append("title").text(({ index: i }) => T[i]);
+      if (NODE_GROUP) node.attr("fill", ({ index: i }) => color(NODE_GROUP[i]));
+      if (NODE_TITLE)
+        node.append("title").text(({ index: i }) => NODE_TITLE[i]);
+
       node
         .append("text")
         .text((d) => d.id)
@@ -210,15 +258,19 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
         .style("font-size", "12px")
         .attr("x", 6)
         .attr("y", 3);
+
       if (invalidation != null) invalidation.then(() => simulation.stop());
 
+      // ============================================
+      // ANIMATE
+      // ============================================
       function ticked() {
+        // console.log(`ticked() ${simulation.alpha()}`);
         link
           .attr("x1", (d) => d.source.x)
           .attr("y1", (d) => d.source.y)
           .attr("x2", (d) => d.target.x)
           .attr("y2", (d) => d.target.y);
-
         node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
       }
 
@@ -228,9 +280,6 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
           if (!event.active) simulation.alphaTarget(0.3).restart();
           event.subject.fx = event.subject.x;
           event.subject.fy = event.subject.y;
-          if (simulation.alpha() < 0.8) {
-            handleSelectNode(event.subject.id);
-          }
         }
 
         function dragged(event) {
@@ -253,7 +302,8 @@ export const Graph = ({ data, selectedNode, handleSelectNode, deg1 }) => {
 
       return Object.assign(svg.node(), { scales: { color } });
     }
-  }, [containerRef, data, selectedNode, deg1]);
+  }, [containerRef, data]);
+  // selectedNode, deg1
 
   return (
     <div
